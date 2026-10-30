@@ -1,65 +1,420 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
-        <meta name="mobile-web-app-capable" content="yes">
-        <meta name="apple-mobile-web-app-capable" content="yes">
-        <link rel="stylesheet" href="./resources/ol.css">
-        <link rel="stylesheet" href="resources/fontawesome-all.min.css">
-        <link href="resources/photon-geocoder-autocomplete.min.css" rel="stylesheet">
-        <link rel="stylesheet" href="./resources/ol-layerswitcher.css">
-        <link rel="stylesheet" href="./resources/qgis2web.css">
-        <style>
-        html, body {
-            background-color: #ffffff;
-        }
-        .ol-control > * {
-            background-color: #f8f8f8!important;
-            color: #444444!important;
-            border-radius: 0px;
-        }
-        .ol-attribution a, .gcd-gl-input::placeholder, .search-layer-input-search::placeholder {
-            color: #444444!important;
-        }
-        .search-layer-input-search {
-            background-color: #f8f8f8!important;
-        }
-        .ol-control > *:focus, .ol-control >*:hover {
-            background-color: rgba(248, 248, 248, 0.7)!important;
-        } 
-        .ol-control {
-            background-color: rgba(255,255,255,.4) !important;
-            padding: 2px !important;
-        } 
-        </style>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#164e38">
+<title>Pallippuram Grama Panchayat | WebGIS</title>
 
-        <style>
-        #map {
-            width: 981px;
-            height: 665px;
-        }
-        </style>
-        <title></title>
-    </head>
-    <body>
-        <div id="map">
-            <div id="popup" class="ol-popup">
-                <a href="#" id="popup-closer" class="ol-popup-closer"></a>
-                <div id="popup-content"></div>
-            </div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@6.15.1/ol.css">
+<script src="https://cdn.jsdelivr.net/npm/ol@6.15.1/dist/ol.js"></script>
+
+<style>
+:root {
+  --green: #164e38;
+  --dark: #103b2c;
+  --cream: #f8f7f1;
+  --gold: #d5a94d;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 85px; }
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: var(--cream);
+  color: #24352c;
+  line-height: 1.6;
+}
+.container { width: 92%; max-width: 1150px; margin: auto; }
+.top { background: var(--dark); color: white; padding: 8px; font-size: 13px; }
+nav {
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 1000;
+  border-bottom: 1px solid #ddd;
+}
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 17px 0;
+  gap: 15px;
+}
+nav a {
+  color: var(--green);
+  text-decoration: none;
+  font-weight: bold;
+  margin: 8px;
+}
+.hero {
+  padding: 75px 0;
+  background: linear-gradient(90deg, #103b2c, #26734d);
+  color: white;
+}
+.hero h1 {
+  font-size: clamp(34px, 5vw, 58px);
+  margin: 0 0 15px;
+  line-height: 1.15;
+}
+.hero p { max-width: 650px; }
+.btn {
+  display: inline-block;
+  background: var(--gold);
+  color: #163b2b;
+  padding: 11px 17px;
+  border-radius: 7px;
+  text-decoration: none;
+  font-weight: bold;
+  margin: 8px 8px 0 0;
+  border: 0;
+  cursor: pointer;
+}
+section { padding: 55px 0; }
+h2 { color: var(--green); }
+.heading { text-align: center; margin-bottom: 30px; }
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  align-items: center;
+}
+.card {
+  background: white;
+  border-radius: 14px;
+  padding: 22px;
+  box-shadow: 0 6px 22px #1232;
+  margin-bottom: 20px;
+}
+.photo {
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+  border-radius: 12px;
+  background: #e4ebe2;
+}
+.facts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.fact { background: white; padding: 20px; border-radius: 12px; }
+#map {
+  width: 100%;
+  height: 520px;
+  min-height: 360px;
+  border: 1px solid #d5ddd6;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #e8eee8;
+}
+.controls {
+  margin: 12px 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+.controls button {
+  padding: 11px 16px;
+  border: 1px solid #cbd7ce;
+  border-radius: 7px;
+  background: white;
+  color: var(--green);
+  font-weight: bold;
+  cursor: pointer;
+}
+.controls button:hover,
+.controls button:focus {
+  background: var(--green);
+  color: white;
+}
+.map-note { text-align: center; font-size: 14px; }
+.resource { background: #eaf1e8; }
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.profile-field label {
+  display: block;
+  font-weight: bold;
+  color: var(--green);
+  margin-bottom: 5px;
+}
+.profile-field input,
+.profile-field textarea {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid #cbd7ce;
+  border-radius: 7px;
+  font: inherit;
+  background: white;
+}
+.profile-field textarea { min-height: 85px; resize: vertical; }
+footer { background: var(--dark); color: white; padding: 30px 0; }
+footer a { color: #e6c775; }
+
+@media (max-width: 700px) {
+  .nav { align-items: flex-start; flex-direction: column; }
+  nav a { display: inline-block; margin: 5px; }
+  .grid, .facts, .profile-grid { grid-template-columns: 1fr; }
+  .hero { padding: 50px 0; }
+  #map { height: 430px; min-height: 350px; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="top">
+  <div class="container">
+    Government of Kerala · Local Governance and Geographic Information
+  </div>
+</div>
+
+<nav>
+  <div class="container nav">
+    <strong>PALLIPPURAM GRAMA PANCHAYAT</strong>
+    <div>
+      <a href="#home">Home</a>
+      <a href="#about">About</a>
+      <a href="#location">Location</a>
+      <a href="#mapsection">Map</a>
+      <a href="#resources">Resources</a>
+      <a href="#projectinfo">Project Info</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="home">
+  <div class="container">
+    <p>LOCAL GOVERNANCE · GEOGRAPHIC INFORMATION</p>
+    <h1>Discover Pallippuram<br>Through Maps.</h1>
+    <p>
+      Explore the geographical setting, local resources and spatial
+      information of Pallippuram Grama Panchayat in Ernakulam district, Kerala.
+    </p>
+    <a class="btn" href="#mapsection">Explore Interactive Map ↗</a>
+    <a class="btn" href="#about">About the Panchayat</a>
+  </div>
+</header>
+
+<section>
+  <div class="container facts">
+    <div class="fact">
+      <h3>📍 Location</h3>
+      <p>Pallippuram, Ernakulam district, Kerala.</p>
+    </div>
+    <div class="fact">
+      <h3>🗺️ Mapping</h3>
+      <p>Explore geographic information using an interactive map.</p>
+    </div>
+    <div class="fact">
+      <h3>🌿 Local Resources</h3>
+      <p>Discover the area's landscape and local features.</p>
+    </div>
+  </div>
+</section>
+
+<section id="about">
+  <div class="container grid">
+    <div>
+      <img class="photo"
+           src="C:\gisweb\qgis2web_2026_10_30-11_59_44_911454\images\WhatsApp Image 2026-10-30 at 12.21.57 PM.jpeg"
+           alt="Pallippuram Grama Panchayat"
+           onerror="this.style.display='none'">
+    </div>
+    <div>
+      <p>ABOUT THE PANCHAYAT</p>
+      <h2>Understanding Pallippuram</h2>
+      <p>
+        Pallippuram Grama Panchayat is located in Ernakulam district, Kerala.
+        Its geographical setting, settlements and local resources are
+        important for understanding the area and supporting local-level planning.
+      </p>
+      <p>
+        This WebGIS website provides a digital platform to explore local
+        geographic information and maps.
+      </p>
+      <a class="btn" href="#mapsection">View Map</a>
+    </div>
+  </div>
+</section>
+
+<section id="location" style="background:white">
+  <div class="container">
+    <div class="heading">
+      <p>GEOGRAPHICAL SETTING</p>
+      <h2>Locate Pallippuram</h2>
+      <p>Explore the surrounding area using the interactive map below.</p>
+    </div>
+    <div class="card">
+      <img class="photo"
+           src="C:\gisweb\qgis2web_2026_10_30-11_59_44_911454\images\WhatsApp Image 2026-10-30 at 12.57.03 PM.jpeg"
+           alt="Location of Pallippuram"
+           onerror="this.style.display='none'">
+    </div>
+  </div>
+<<section class="resource" id="resources">
+  <div class="container">
+    <div class="heading">
+      <p>MAP RESOURCES</p>
+      <h2>Explore the Resource Map</h2>
+      <p>Access the resource map published through GitHub Pages.</p>
+    </div>
+
+    <div class="card" style="text-align:center;">
+      <p>
+        Open the resource map to explore the geographic information
+        available in your separate project.
+      </p>
+      <a class="btn"
+         href="https://malavikaks8330.github.io/Resource-map-Panchayat-map/"
+         target="_blank"
+         rel="noopener noreferrer">
+        Open Resource Map ↗
+      </a>
+    </div>
+  </div>
+</section>
+
+<section id="projectinfo">
+  <div class="container">
+    <div class="heading">
+      <p>PROJECT DETAILS</p>
+      <h2>Student and Project Information</h2>
+    </div>
+
+    <div class="card">
+      <div class="profile-grid">
+        <div class="profile-field">
+          <label for="studentName">Student Name</label>
+          <input id="studentName" type="text" placeholder="MALAVIKA K S">
         </div>
-        <script src="resources/qgis2web_expressions.js"></script>
-        <script src="./resources/functions.js"></script>
-        <script src="./resources/ol.js"></script>
-        <script src="./resources/ol-layerswitcher.js"></script>
-        <script src="resources/photon-geocoder-autocomplete.min.js"></script>
-        <script src="resources/olms.js"></script>
-        <script src="layers/ROAD_0.js"></script><script src="layers/BOUNDARY_2.js"></script><script src="layers/GEOMORPHOLOGY_3.js"></script><script src="layers/GEOLOGY_4.js"></script><script src="layers/BUILDINGS_5.js"></script><script src="layers/WARD_6.js"></script>
-        <script src="styles/ROAD_0_style.js"></script><script src="styles/BOUNDARY_2_style.js"></script><script src="styles/GEOMORPHOLOGY_3_style.js"></script><script src="styles/GEOLOGY_4_style.js"></script><script src="styles/BUILDINGS_5_style.js"></script><script src="styles/WARD_6_style.js"></script>
-        <script src="./layers/layers.js" type="text/javascript"></script> 
-        <script src="./resources/Autolinker.min.js"></script>
-        <script src="./resources/qgis2web.js"></script>
-    </body>
+
+        <div class="profile-field">
+          <label for="university">University / Institution</label>
+          <input id="university" type="text" placeholder="SREE SANKARACHARYA UNIVERSITY OF SANSKRIT">
+        </div>
+
+        <div class="profile-field">
+          <label for="department">Department</label>
+          <input id="department" type="text"
+                 placeholder="Department of Geography">
+        </div>
+
+        <div class="profile-field">
+          <label for="course">Course / Programme</label>
+          <input id="course" type="text" placeholder=" MSc Geography">
+        </div>
+
+        <div class="profile-field">
+          <label for="email">Email Address (optional)</label>
+          <input id="email" type="email" placeholder="malavikaks850@gmail.com">
+        </div>
+
+        <div class="profile-field">
+          <label for="projectTitle">Project Title</label>
+          <input id="projectTitle" type="text"
+                 value="Pallippuram Grama Panchayat WebGIS">
+        </div>
+
+        <div class="profile-field" style="grid-column:1/-1;">
+          <label for="projectDescription">Project Description / Acknowledgement</label>
+          <textarea id="projectDescription"
+                    placeholder="Web GIS for Pallippuram Panchayat"></textarea>
+        </div>
+      </div>
+    </div
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <strong>Pallippuram Grama Panchayat WebGIS</strong>
+    <p>Geographic Information and Local Mapping Project, not an official website · Kerala, India</p>
+    <p><a href="#home">Back to top ↑</a></p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  const status = document.getElementById("map-status");
+
+  if (!window.ol) {
+    status.textContent =
+      "The map library could not load. Check your internet connection and refresh.";
+    return;
+  }
+
+  const standardLayer = new ol.layer.Tile({
+    source: new ol.source.OSM()
+  });
+
+  const terrainLayer = new ol.layer.Tile({
+    source: new ol.source.XYZ({
+      url: "https://tile.opentopomap.org/{z}/{x}/{y}.png",
+      attributions:
+        "Map data © OpenStreetMap contributors | Map style © OpenTopoMap"
+    }),
+    visible: false
+  });
+
+  const initialCenter = ol.proj.fromLonLat([76.20, 10.15]);
+
+  const map = new ol.Map({
+    target: "map",
+    layers: [standardLayer, terrainLayer],
+    view: new ol.View({
+      center: initialCenter,
+      zoom: 11
+    })
+  });
+
+  document.getElementById("standardBtn").addEventListener("click", function () {
+    standardLayer.setVisible(true);
+    terrainLayer.setVisible(false);
+    status.textContent = "Standard OpenStreetMap selected.";
+    map.updateSize();
+  });
+
+  document.getElementById("terrainBtn").addEventListener("click", function () {
+    standardLayer.setVisible(false);
+    terrainLayer.setVisible(true);
+    status.textContent = "Terrain Map selected. Loading terrain tiles...";
+    map.updateSize();
+  });
+
+  document.getElementById("resetBtn").addEventListener("click", function () {
+    map.getView().animate({
+      center: initialCenter,
+      zoom: 11,
+      duration: 400
+    });
+    map.updateSize();
+  });
+
+  standardLayer.getSource().on("tileloaderror", function () {
+    status.textContent =
+      "Some standard map tiles could not load. Check your internet connection.";
+  });
+
+  terrainLayer.getSource().on("tileloaderror", function () {
+    status.textContent =
+      "Some terrain tiles could not load. Try Standard Map or check your connection.";
+  });
+
+  window.addEventListener("load", function () {
+    map.updateSize();
+    status.textContent = "Standard OpenStreetMap selected.";
+  });
+
+  window.addEventListener("resize", function () {
+    map.updateSize();
+  });
+})();
+</script>
+
+</body>
 </html>
